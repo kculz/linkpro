@@ -12,6 +12,11 @@ class Unit extends Model {
   public tenantId?: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  public static associate(models: any) {
+    Unit.belongsTo(models.Property, { foreignKey: 'propertyId', as: 'property' });
+    Unit.belongsTo(models.User, { foreignKey: 'tenantId', as: 'tenant' });
+  }
 }
 
 Unit.init(
