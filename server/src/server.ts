@@ -2,6 +2,7 @@ import app from './app.js';
 import http from 'http';
 import { Server } from 'socket.io';
 import sequelize from '@config/database.js';
+import { initAssociations } from '@models/associations.js';
 import { connectRedis } from '@config/redis.js';
 import logger from '@utils/logger.js';
 
@@ -37,6 +38,7 @@ export { io };
 
 const start = async () => {
   try {
+    initAssociations();
     await connectRedis();
     await sequelize.authenticate();
     logger.info('✅ Database connected');

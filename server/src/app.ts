@@ -9,9 +9,11 @@ import { errorHandler } from '@middlewares/errorHandler.js';
 import logger from '@utils/logger.js';
 
 // Routes v1
-import authRoutes from '@routes/v1/auth.routes.js';
-import propertyRoutes from '@routes/v1/property.routes.js';
-import projectRoutes from '@routes/v1/project.routes.js';
+import authRoutes from './routes/v1/auth.routes.js';
+import propertyRoutes from './routes/v1/property.routes.js';
+import projectRoutes from './routes/v1/project.routes.js';
+import unitRoutes from './routes/v1/unit.routes.js';
+import taskRoutes from './routes/v1/task.routes.js';
 
 dotenv.config();
 
@@ -35,7 +37,9 @@ if (process.env.NODE_ENV === 'development') {
 // API Versioned Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/properties', propertyRoutes);
+app.use('/api/v1/units', unitRoutes);
 app.use('/api/v1/projects', projectRoutes);
+app.use('/api/v1/tasks', taskRoutes);
 
 // Health Check
 app.get('/health', (req: Request, res: Response) => {
