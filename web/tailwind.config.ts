@@ -12,19 +12,25 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
         primary: {
-          DEFAULT: "#3B82F6",
+          DEFAULT: "#7C3AED", // Vibrant Purple
+          blue: "#3B82F6",    // Classic Blue
+          purple: "#6D28D9",  // Deep Purple
           foreground: "#FFFFFF",
         },
         sidebar: {
-          DEFAULT: "#0F172A",
-          foreground: "#F8FAFC",
+          DEFAULT: "#450A0A", // Deep Maroon
+          foreground: "#FDF2F2", // Very Light Maroon/White
         },
         status: {
-          success: "#10B981",
-          warning: "#F59E0B",
-          error: "#EF4444",
-          info: "#3B82F6",
+          success: "#10B981", // Emerald Green
+          warning: "#FBBF24", // Sunflower Yellow
+          error: "#991B1B",   // Maroon / Red-Dark
+          info: "#3B82F6",    // Blue
         },
+        neutral: {
+          light: "#F8FAFC",   // Off White
+          medium: "#64748B",  // Slate Gray
+        }
       },
       borderRadius: {
         'xl': '1rem',
