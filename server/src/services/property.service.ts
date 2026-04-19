@@ -28,15 +28,21 @@ export const deleteProperty = async (id: string) => {
 
 export const getOccupancyStats = async () => {
   const properties = await Property.findAll();
-  const totalUnits = properties.reduce((s, p) => s + p.totalUnits, 0);
-  const occupiedUnits = properties.reduce((s, p) => s + p.occupiedUnits, 0);
-  const totalIncome = properties.reduce((s, p) => s + Number(p.monthlyIncome), 0);
+  
+  const stats = properties.reduce(
+    (acc, p) => {
+      acc.totalProperties += 1;
+      acc.totalUnits += Number(p.totalUnits) || 0;
+      acc.occupiedUnits += Number(p.occupiedUnits) || 0;
+      acc.totalMonthlyIncome += Number(p.monthlyIncome) || 0;
+      return acc;
+    },
+    { totalProperties: 0, totalUnits: 0, occupiedUnits: 0, totalMonthlyIncome: 0 }
+  );
+
   return {
-    totalProperties: properties.length,
-    totalUnits,
-    occupiedUnits,
-    vacantUnits: totalUnits - occupiedUnits,
-    occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0,
-    totalMonthlyIncome: totalIncome,
+    ...stats,
+    vacantUnits: stats.totalUnits - stats.occupiedUnits,
+    occupancyRate: stats.totalUnits > 0 ? Math.round((stats.occupiedUnits / stats.totalUnits) * 100) : 0,
   };
 };

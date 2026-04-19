@@ -16,6 +16,10 @@ class Property extends Model {
   public ownerId!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  
+  public static associate(models: any) {
+    Property.hasMany(models.Unit, { foreignKey: 'propertyId', as: 'units' });
+  }
 }
 
 Property.init(

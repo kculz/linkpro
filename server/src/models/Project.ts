@@ -17,6 +17,12 @@ class Project extends Model {
   public image?: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  static associate(models: any) {
+    Project.belongsTo(models.Property, { foreignKey: 'propertyId', as: 'property' });
+    Project.belongsTo(models.User, { foreignKey: 'managerId', as: 'manager' });
+    Project.hasMany(models.Task, { foreignKey: 'projectId', as: 'tasks' });
+  }
 }
 
 Project.init(

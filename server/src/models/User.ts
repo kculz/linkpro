@@ -12,6 +12,11 @@ class User extends Model {
   declare public phone?: string;
   declare public readonly createdAt: Date;
   declare public readonly updatedAt: Date;
+
+  static associate(models: any) {
+    User.hasMany(models.Project, { foreignKey: 'managerId', as: 'managedProjects' });
+    User.hasMany(models.Task, { foreignKey: 'assigneeId', as: 'tasks' });
+  }
 }
 
 User.init(
