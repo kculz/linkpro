@@ -12,6 +12,7 @@ interface PropertyState {
   addProperty: (data: Partial<PropertyService.Property>) => Promise<void>;
   addUnit: (data: Partial<UnitService.Unit>) => Promise<void>;
   updateUnitStatus: (id: string, status: UnitService.Unit['status']) => Promise<void>;
+  updateUnitLocally: (unit: UnitService.Unit) => void;
 }
 
 export const usePropertyStore = create<PropertyState>((set, get) => ({
@@ -79,21 +80,24 @@ export const usePropertyStore = create<PropertyState>((set, get) => ({
   updateUnitStatus: async (id, status) => {
     try {
       const updatedUnit = await UnitService.updateUnit(id, { status });
-      set((state) => ({
-        properties: state.properties.map((p) =>
-          p.id === updatedUnit.propertyId
-            ? {
-                ...p,
-                units: p.units?.map((u) => (u.id === id ? updatedUnit : u)),
-                occupiedUnits: status === 'OCCUPIED' 
-                  ? p.occupiedUnits + 1 
-                  : (p.occupiedUnits > 0 ? p.occupiedUnits - 1 : 0)
-              }
-            : p
-        ),
-      }));
+      get().updateUnitLocally(updatedUnit);
     } catch (err) {
       console.error('Failed to update unit status', err);
     }
+  },
+
+  updateUnitLocally: (unit) => {
+    set((state) => ({
+      properties: state.properties.map((p) =>
+        p.id === unit.propertyId
+          ? {
+              ...p,
+              units: p.units?.map((u) => (u.id === unit.id ? unit : u)),
+              // Occupied units calculation might need refinement if more than status changes
+              occupiedUnits: p.units?.filter(u => u.id === unit.id ? unit.status === 'OCCUPIED' : u.status === 'OCCUPIED').length || p.occupiedUnits
+            }
+          : p
+      ),
+    }));
   },
 }));

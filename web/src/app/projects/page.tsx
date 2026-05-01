@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useProjectStore } from '@/store/project.store';
 import { useAuthStore } from '@/store/auth.store';
 import AddProjectModal from '@/components/projects/AddProjectModal';
+import { clsx } from 'clsx';
 
 const getStatusDetails = (status: string) => {
   switch (status) {

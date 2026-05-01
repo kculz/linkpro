@@ -17,6 +17,11 @@ interface ProjectState {
   addTask: (data: Partial<TaskService.Task>) => Promise<void>;
   updateTaskStatus: (taskId: string, status: TaskService.Task['status']) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
+  addTaskLocally: (task: TaskService.Task) => void;
+  updateTaskLocally: (task: TaskService.Task) => void;
+  deleteTaskLocally: (taskId: string) => void;
+  updateProject: (id: string, data: Partial<ProjectService.Project>) => Promise<void>;
+  updateProjectLocally: (project: ProjectService.Project) => void;
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -143,5 +148,78 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     } catch (err) {
       console.error('Failed to delete task', err);
     }
+  },
+
+  addTaskLocally: (task) => {
+    set((state) => {
+      if (state.currentProject?.id !== task.projectId) return state;
+      const alreadyExists = state.currentProject.tasks?.some(t => t.id === task.id);
+      if (alreadyExists) return state;
+      
+      return {
+        currentProject: {
+          ...state.currentProject,
+          tasks: [...(state.currentProject.tasks || []), task]
+        }
+      };
+    });
+  },
+
+  updateTaskLocally: (task) => {
+    set((state) => {
+      // Update in allTasks
+      const updatedAllTasks = state.allTasks.map(t => t.id === task.id ? task : t);
+
+      // Update in currentProject
+      if (!state.currentProject || state.currentProject.id !== task.projectId) {
+        return { allTasks: updatedAllTasks };
+      }
+
+      const updatedTasks = state.currentProject.tasks?.map(t => t.id === task.id ? task : t);
+      
+      // Re-calculate progress
+      const total = updatedTasks?.length || 0;
+      const done = updatedTasks?.filter(t => t.status === 'DONE').length || 0;
+      const progress = total > 0 ? Math.round((done / total) * 100) : state.currentProject.progress;
+
+      return {
+        allTasks: updatedAllTasks,
+        currentProject: { ...state.currentProject, tasks: updatedTasks, progress }
+      };
+    });
+  },
+
+  deleteTaskLocally: (taskId) => {
+    set((state) => {
+      const updatedAllTasks = state.allTasks.filter(t => t.id !== taskId);
+      if (!state.currentProject) return { allTasks: updatedAllTasks };
+
+      const updatedTasks = state.currentProject.tasks?.filter(t => t.id !== taskId);
+      return {
+        allTasks: updatedAllTasks,
+        currentProject: { ...state.currentProject, tasks: updatedTasks }
+      };
+    });
+  },
+  
+  updateProject: async (id, data) => {
+    set({ loading: true, error: null });
+    try {
+      const updatedProject = await ProjectService.updateProject(id, data);
+      set((state) => ({
+        projects: state.projects.map(p => p.id === id ? { ...p, ...updatedProject } : p),
+        currentProject: state.currentProject?.id === id ? { ...state.currentProject, ...updatedProject } : state.currentProject,
+        loading: false
+      }));
+    } catch (err) {
+      set({ error: 'Failed to update project', loading: false });
+    }
+  },
+
+  updateProjectLocally: (project) => {
+    set((state) => ({
+      projects: state.projects.map(p => p.id === project.id ? { ...p, ...project } : p),
+      currentProject: state.currentProject?.id === project.id ? { ...state.currentProject, ...project } : state.currentProject
+    }));
   },
 }));
