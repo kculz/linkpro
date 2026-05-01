@@ -14,6 +14,14 @@ import propertyRoutes from './routes/v1/property.routes.js';
 import projectRoutes from './routes/v1/project.routes.js';
 import unitRoutes from './routes/v1/unit.routes.js';
 import taskRoutes from './routes/v1/task.routes.js';
+import activityRoutes from './routes/v1/activity.routes.js';
+import tenantRoutes from './routes/v1/tenant.routes.js';
+import maintenanceRoutes from './routes/v1/maintenance.routes.js';
+import transactionRoutes from './routes/v1/transaction.routes.js';
+import documentRoutes from './routes/v1/document.routes.js';
+import vendorRoutes from './routes/v1/vendor.routes.js';
+import analyticsRoutes from './routes/v1/analytics.routes.js';
+import notificationRoutes from './routes/v1/notification.routes.js';
 
 dotenv.config();
 
@@ -40,6 +48,14 @@ app.use('/api/v1/properties', propertyRoutes);
 app.use('/api/v1/units', unitRoutes);
 app.use('/api/v1/projects', projectRoutes);
 app.use('/api/v1/tasks', taskRoutes);
+app.use('/api/v1/activity', activityRoutes);
+app.use('/api/v1/tenants', tenantRoutes);
+app.use('/api/v1/maintenance', maintenanceRoutes);
+app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/v1/documents', documentRoutes);
+app.use('/api/v1/vendors', vendorRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // Health Check
 app.get('/health', (req: Request, res: Response) => {
