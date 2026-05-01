@@ -4,6 +4,7 @@ import React from 'react';
 import { Bell, Search, User, Menu } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
+import NotificationCenter from '@/components/layout/NotificationCenter';
 
 export default function Header() {
   const { user } = useAuthStore();
@@ -30,10 +31,7 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
-        <button className="relative w-11 h-11 flex items-center justify-center rounded-2xl bg-surface/40 hover:bg-surface/60 text-white/40 hover:text-white transition-all border border-white-[0.03]">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full border-2 border-background shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>
-        </button>
+        <NotificationCenter />
         
         <div className="h-6 w-[1px] bg-white-[0.03] mx-1"></div>
 
