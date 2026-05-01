@@ -40,3 +40,8 @@ export const createProperty = async (propertyData: Partial<Property>) => {
 export const deleteProperty = async (id: string) => {
   await api.delete(`/properties/${id}`);
 };
+
+export const getUnitById = async (id: string) => {
+  const { data } = await api.get(`/properties/units/${id}`);
+  return data.data;
+};

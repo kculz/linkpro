@@ -1,5 +1,9 @@
 import Property from '@models/Property.js';
 import Unit from '@models/Unit.js';
+import Tenant from '@models/Tenant.js';
+import MaintenanceRequest from '@models/MaintenanceRequest.js';
+import Transaction from '@models/Transaction.js';
+import Document from '@models/Document.js';
 import { AppError } from '@middlewares/errorHandler.js';
 
 export const getAllProperties = async () =>
@@ -45,4 +49,41 @@ export const getOccupancyStats = async () => {
     vacantUnits: stats.totalUnits - stats.occupiedUnits,
     occupancyRate: stats.totalUnits > 0 ? Math.round((stats.occupiedUnits / stats.totalUnits) * 100) : 0,
   };
+};
+
+export const createUnit = async (data: any) => {
+  return Unit.create(data);
+};
+
+export const updateUnit = async (id: string, data: any) => {
+  const unit = await Unit.findByPk(id);
+  if (!unit) throw new Error('Unit not found');
+  return unit.update(data);
+};
+
+export const deleteUnit = async (id: string) => {
+  const unit = await Unit.findByPk(id);
+  if (!unit) throw new Error('Unit not found');
+  return unit.destroy();
+};
+
+export const getUnitById = async (id: string) => {
+  return Unit.findByPk(id, {
+    include: [
+      { model: Tenant, as: 'tenant' },
+      { 
+        model: MaintenanceRequest, 
+        as: 'maintenanceRequests',
+        include: [{ model: Property, as: 'property', attributes: ['name'] }]
+      },
+      { model: Transaction, as: 'transactions' },
+      { 
+        model: Document, 
+        as: 'documents',
+        where: { targetType: 'UNIT' },
+        required: false
+      },
+      { model: Property, as: 'property', attributes: ['name', 'address'] }
+    ]
+  });
 };

@@ -13,20 +13,31 @@ import {
   LayoutGrid,
   ChevronRight,
   Loader2,
-  Trash2
+  Trash2,
+  Calendar,
+  DollarSign,
+  Clock
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePropertyStore } from '@/store/property.store';
+import { useActivityStore } from '@/store/activity.store';
 import * as PropertyService from '@/services/propertyService';
 import AddUnitModal from '@/components/properties/AddUnitModal';
+import { useSocket } from '@/hooks/useSocket';
+import { clsx } from 'clsx';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
-  const { properties, fetchProperties } = usePropertyStore();
+  const { properties, fetchProperties, updateUnitStatus } = usePropertyStore();
+  const { activities, fetchActivities } = useActivityStore();
   const [property, setProperty] = useState<PropertyService.Property | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Real-time synchronization
+  useSocket(id);
 
   const selectedProperty = properties.find(p => p.id === id);
 
@@ -39,24 +50,16 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     }
   }, [id, selectedProperty, fetchProperties]);
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-primary opacity-50" />
-        </div>
-      </DashboardLayout>
-    );
-  }
+  useEffect(() => {
+    fetchActivities({ targetId: id, targetType: 'UNIT', limit: 10 });
+  }, [id, fetchActivities]);
 
-  if (!property) {
+  if (loading || !property) {
     return (
       <DashboardLayout>
-        <div className="py-20 text-center">
-          <h2 className="text-2xl font-bold text-slate-900">Property not found</h2>
-          <Link href="/properties" className="text-primary mt-4 inline-block font-semibold">
-            Back to Properties
-          </Link>
+        <div className="flex flex-col items-center justify-center py-40">
+          <Loader2 className="w-12 h-12 animate-spin text-primary opacity-50" />
+          <p className="text-white/20 mt-6 font-black italic uppercase tracking-widest text-[10px]">Scanning Asset Parameters...</p>
         </div>
       </DashboardLayout>
     );
@@ -66,35 +69,38 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-10 animate-in fade-in duration-700">
         {/* Navigation & Header */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div className="space-y-6">
             <Link 
               href="/properties" 
-              className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-medium text-sm w-fit"
+              className="group flex items-center gap-3 text-white/20 hover:text-primary transition-all font-black text-[10px] uppercase tracking-[0.3em] w-fit italic"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to Portfolio
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-2 transition-transform" /> Back to Portfolio
             </Link>
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                <Building2 className="w-8 h-8" />
+            <div className="flex items-center gap-6">
+              <div className="w-20 h-20 rounded-[2rem] bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-2xl">
+                <Building2 className="w-10 h-10" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{property.name}</h1>
-                <div className="flex items-center gap-2 text-slate-500 mt-1">
-                  <MapPin className="w-4 h-4" />
-                  <span>{property.address}, {property.city}</span>
+                <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase underline decoration-primary decoration-4 underline-offset-8 mb-4">{property.name}</h1>
+                <div className="flex items-center gap-4 text-white/20">
+                  <span className="text-[10px] font-black flex items-center gap-2 uppercase tracking-widest italic">
+                    <MapPin className="w-4 h-4 text-primary" /> {property.address}, {property.city}
+                  </span>
+                  <span className="text-white/5 font-black">/ / /</span>
+                  <span className="text-[10px] font-black px-3 py-1 bg-primary/5 border border-primary/20 rounded-lg uppercase tracking-widest italic text-primary">{property.type}</span>
                 </div>
               </div>
             </div>
           </div>
-          <div className="flex gap-3">
-            <button className="p-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all">
-              <Settings className="w-5 h-5" />
+          <div className="flex gap-4">
+            <button className="w-14 h-14 bg-surface/40 border border-white/[0.03] text-white/20 hover:text-white rounded-2xl flex items-center justify-center transition-all hover:bg-surface/60">
+              <Settings className="w-6 h-6" />
             </button>
-            <button className="px-6 py-3 bg-white border border-slate-200 text-red-600 rounded-xl font-bold hover:bg-red-50 hover:border-red-100 transition-all flex items-center gap-2">
-              <Trash2 className="w-4 h-4" /> Delete Property
+            <button className="px-8 py-4 bg-status-error/10 border border-status-error/20 text-status-error rounded-[1.5rem] font-black italic uppercase text-xs tracking-widest hover:bg-status-error/20 transition-all flex items-center gap-3 shadow-2xl">
+              <Trash2 className="w-4 h-4" /> Decommission
             </button>
           </div>
         </div>
@@ -103,20 +109,21 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="relative h-96 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50">
+            <div className="relative h-[500px] rounded-[3.5rem] overflow-hidden shadow-2xl group border border-white/5">
               <Image 
                 src={property.image || '/images/property-placeholder.png'} 
                 alt={property.name} 
                 fill 
-                className="object-cover"
+                className="object-cover brightness-75 group-hover:brightness-90 transition-all duration-1000 saturate-50 group-hover:saturate-100 scale-105 group-hover:scale-100"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between">
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
+              <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between">
+                <div className="space-y-2">
+                  <p className="text-primary font-black italic text-[10px] uppercase tracking-[0.4em]">Strategic Asset</p>
+                  <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Operational Overview</h2>
+                </div>
                 <div className="flex gap-3">
-                  <span className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white text-sm font-bold border border-white/30">
-                    {property.type}
-                  </span>
-                  <span className={`px-4 py-2 rounded-full text-white text-sm font-bold border border-white/30 backdrop-blur-md ${property.status === 'ACTIVE' ? 'bg-emerald-500/40' : 'bg-amber-500/40'}`}>
+                  <span className="px-5 py-2 bg-white/5 backdrop-blur-xl rounded-xl text-white/40 text-[10px] font-black uppercase tracking-widest border border-white/10 italic">
                     {property.status}
                   </span>
                 </div>
@@ -124,122 +131,138 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* Units Section */}
-            <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
-              <div className="p-8 flex items-center justify-between border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                    <LayoutGrid className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900">Units Inventory</h3>
+            <div className="bg-surface/40 rounded-[3rem] border border-white/[0.03] overflow-hidden shadow-2xl backdrop-blur-md relative group">
+              <div className="absolute inset-0 bg-primary/[0.01] pointer-events-none" />
+              <div className="p-10 flex items-center justify-between border-b border-white/[0.03]">
+                <div className="flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                  <h3 className="font-black text-white text-[10px] uppercase tracking-[0.25em] italic">Unit Inventory</h3>
                 </div>
                 <button 
                   onClick={() => setIsUnitModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all"
+                  className="px-6 py-3 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest italic hover:brightness-110 transition-all flex items-center gap-3 border border-white/10 shadow-lg"
                 >
-                  <Plus className="w-4 h-4" /> Add Unit
+                  <Plus className="w-4 h-4" /> Deploy Unit
                 </button>
               </div>
               
-              <div className="divide-y divide-slate-50">
+              <div className="divide-y divide-white/[0.02]">
                 {property.units && property.units.length > 0 ? (
                   property.units.map((unit) => (
-                    <div key={unit.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary group-hover:text-white transition-all capitalize">
-                          <span className="font-bold">{unit.unitNumber.slice(0, 2)}</span>
+                    <Link 
+                      key={unit.id} 
+                      href={`/properties/${id}/units/${unit.id}`}
+                      className="p-8 flex items-center justify-between hover:bg-white/[0.02] transition-all group/unit relative"
+                    >
+                      <div className="flex items-center gap-6 relative z-10">
+                        <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-white/20 group-hover/unit:bg-primary/20 group-hover/unit:text-primary transition-all shadow-inner">
+                          <span className="font-black italic text-lg">{unit.unitNumber.slice(0, 2)}</span>
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900">Unit {unit.unitNumber}</p>
-                          <p className="text-sm text-slate-500">{unit.type} • {unit.floorArea} sqft</p>
+                          <p className="font-black text-white italic uppercase tracking-tighter text-lg">Unit {unit.unitNumber}</p>
+                          <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest mt-1 italic">{unit.type} • {unit.floorArea} SQFT</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-8">
+                      <div className="flex items-center gap-10 relative z-10">
                         <div className="text-right">
-                          <p className="font-bold text-slate-900">${Number(unit.rent).toLocaleString()}</p>
-                          <p className="text-xs text-slate-400">Monthly Rent</p>
+                          <p className="font-black text-white italic text-lg leading-none">${Number(unit.rent).toLocaleString()}</p>
+                          <p className="text-[9px] text-white/10 font-black uppercase tracking-widest mt-1">Monthly Yield</p>
                         </div>
-                        <button 
-                          onClick={() => {
-                            const newStatus = unit.status === 'OCCUPIED' ? 'VACANT' : 'OCCUPIED';
-                            usePropertyStore.getState().updateUnitStatus(unit.id, newStatus);
-                          }}
-                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                            unit.status === 'OCCUPIED' 
-                              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
-                              : unit.status === 'VACANT'
-                              ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                              : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                          }`}
-                        >
-                          {unit.status.charAt(0) + unit.status.slice(1).toLowerCase()}
-                        </button>
-                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-900 transition-colors" />
+                        <span className={clsx(
+                          "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all italic border",
+                          unit.status === 'OCCUPIED' 
+                            ? 'bg-status-success/10 text-status-success border-status-success/20' 
+                            : 'bg-primary/10 text-primary border-primary/20'
+                        )}>
+                          {unit.status}
+                        </span>
+                        <ChevronRight className="w-5 h-5 text-white/5 group-hover/unit:text-primary transition-all group-hover/unit:translate-x-1" />
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
-                  <div className="p-12 text-center">
-                    <p className="text-slate-500">No units added to this property yet.</p>
+                  <div className="p-24 text-center">
+                    <p className="text-[10px] font-black text-white/5 uppercase tracking-[0.4em] italic">No active deployments detected</p>
                   </div>
                 )}
-              </div>
-              
-              <div className="p-6 bg-slate-50 text-center">
-                <button className="text-sm font-bold text-primary hover:underline">
-                  View all units
-                </button>
               </div>
             </div>
           </div>
 
           {/* Sidebar Stats */}
-          <div className="space-y-6">
-            <div className="bg-slate-900 rounded-[2rem] p-8 text-white shadow-xl shadow-blue-900/20">
-              <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-400" /> Performance
-              </h3>
+          <div className="space-y-8">
+            <div className="bg-surface/40 rounded-[3rem] p-10 border border-white/[0.03] shadow-2xl backdrop-blur-md relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-32 h-32 bg-primary/10 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity" />
               
-              <div className="space-y-8">
-                <div>
-                  <div className="flex justify-between text-sm text-slate-400 mb-2">
-                    <span>Occupancy Rate</span>
-                    <span className="text-white font-bold">{occupancyRate}%</span>
-                  </div>
-                  <div className="w-full bg-white/10 rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.5)]" 
-                      style={{ width: `${occupancyRate}%` }}
-                    />
+              <div className="relative z-10 space-y-10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    <h3 className="font-black text-white text-[10px] uppercase tracking-[0.2em] italic">Performance Metrics</h3>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p className="text-xs text-slate-400 mb-1">Total Units</p>
-                    <p className="text-2xl font-bold">{property.totalUnits}</p>
+                
+                <div className="space-y-8">
+                  <div>
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest italic text-white/20 mb-3">
+                      <span>Occupancy Density</span>
+                      <span className="text-white">{occupancyRate}%</span>
+                    </div>
+                    <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden shadow-inner">
+                      <div 
+                        className="bg-primary h-full rounded-full shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all duration-1000" 
+                        style={{ width: `${occupancyRate}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p className="text-xs text-slate-400 mb-1">Occupied</p>
-                    <p className="text-2xl font-bold">{property.occupiedUnits}</p>
-                  </div>
-                </div>
 
-                <div className="pt-6 border-t border-white/10">
-                  <p className="text-sm text-slate-400 mb-1 text-center">Monthly Gross Income</p>
-                  <p className="text-4xl font-bold text-center tracking-tight">
-                    <span className="text-blue-400 text-2xl mr-1">$</span>
-                    {Number(property.monthlyIncome).toLocaleString()}
-                  </p>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="p-6 bg-white/[0.02] rounded-[2rem] border border-white/[0.03] shadow-inner">
+                      <p className="text-[9px] text-white/20 font-black uppercase tracking-widest mb-2 italic">Total Units</p>
+                      <p className="text-2xl font-black text-white italic tracking-tighter">{property.totalUnits}</p>
+                    </div>
+                    <div className="p-6 bg-white/[0.02] rounded-[2rem] border border-white/[0.03] shadow-inner">
+                      <p className="text-[9px] text-white/20 font-black uppercase tracking-widest mb-2 italic">Occupied</p>
+                      <p className="text-2xl font-black text-primary italic tracking-tighter">{property.occupiedUnits}</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-10 border-t border-white/[0.03] text-center">
+                    <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] mb-4 italic">Estimated Monthly Yield</p>
+                    <p className="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
+                      <span className="text-primary text-2xl mr-1 leading-none">$</span>
+                      {Number(property.monthlyIncome).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-emerald-500" /> Recent Tenants
-              </h3>
-              <div className="space-y-4">
-                <p className="text-sm text-slate-500 text-center py-4">No recent tenant activity.</p>
+            <div className="bg-surface/40 rounded-[3rem] p-10 border border-white/[0.03] shadow-2xl backdrop-blur-md relative overflow-hidden group">
+              <div className="flex items-center gap-3 mb-10">
+                <Users className="w-5 h-5 text-status-success" />
+                <h3 className="font-black text-white text-[10px] uppercase tracking-[0.2em] italic">Real-Time Intel</h3>
+              </div>
+              <div className="space-y-6">
+                 {activities.length > 0 ? (
+                  activities.map((activity, i) => (
+                    <div key={activity.id} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/5">
+                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[10px] font-black text-white/20 uppercase italic border border-white/5">
+                        {activity.user?.name.charAt(0)}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[10px] font-black text-white italic uppercase tracking-tighter">{activity.user?.name}</p>
+                        <p className="text-[8px] text-white/20 font-bold uppercase tracking-widest">{activity.description}</p>
+                      </div>
+                      <span className="text-[8px] font-black text-primary italic shrink-0">{formatDistanceToNow(new Date(activity.createdAt), { addSuffix: false }).replace('about ', '')}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-10 text-center opacity-10">
+                    <Clock className="w-8 h-8 mx-auto mb-4" />
+                    <p className="text-[8px] font-black uppercase tracking-widest italic">No asset events logged</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
