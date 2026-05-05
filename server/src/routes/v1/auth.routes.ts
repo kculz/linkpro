@@ -10,6 +10,8 @@ import {
   resetPasswordSchema,
 } from '@validations/auth.validation.js';
 
+import { authenticate } from '@middlewares/auth.middleware.js';
+
 const router = Router();
 
 /**
@@ -53,5 +55,10 @@ router.post('/reset-password', validate(resetPasswordSchema), AuthController.res
  * Get a new access token using a valid refresh token
  */
 router.post('/refresh-token', AuthController.refreshToken);
+
+// ─── Authenticated Profile Routes ─────────────────────────────────────────────
+router.get('/me', authenticate, AuthController.getMe);
+router.put('/profile', authenticate, AuthController.updateProfile);
+router.put('/change-password', authenticate, AuthController.changePassword);
 
 export default router;

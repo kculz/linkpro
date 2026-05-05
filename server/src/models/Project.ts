@@ -2,21 +2,21 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/database.js';
 
 class Project extends Model {
-  public id!: string;
-  public name!: string;
-  public description?: string;
-  public type!: 'DEVELOPMENT' | 'RENOVATION' | 'MAINTENANCE';
-  public status!: 'PLANNING' | 'IN_PROGRESS' | 'ON_TRACK' | 'DELAYED' | 'COMPLETED';
-  public budget!: number;
-  public spent!: number;
-  public progress!: number; // 0-100
-  public startDate!: Date;
-  public dueDate!: Date;
-  public propertyId?: string;
-  public managerId!: string;
-  public image?: string;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: string;
+  declare name: string;
+  declare description: string | undefined;
+  declare type: 'DEVELOPMENT' | 'RENOVATION' | 'MAINTENANCE';
+  declare status: 'PLANNING' | 'IN_PROGRESS' | 'ON_TRACK' | 'DELAYED' | 'COMPLETED';
+  declare budget: number;
+  declare spent: number;
+  declare progress: number;
+  declare startDate: Date;
+  declare dueDate: Date;
+  declare propertyId: string | undefined;
+  declare managerId: string;
+  declare image: string | undefined;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 
   static associate(models: any) {
     Project.belongsTo(models.Property, { foreignKey: 'propertyId', as: 'property' });

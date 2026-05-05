@@ -23,7 +23,8 @@ export const getProjectById = async (req: Request, res: Response, next: NextFunc
 
 export const createProject = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const project = await projectService.createProject(req.body);
+    const body = { ...req.body, managerId: (req as any).user.id };
+    const project = await projectService.createProject(body);
     
     await activityService.logActivity({
       userId: (req as any).user.id,
@@ -34,7 +35,9 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
     });
 
     res.status(201).json({ status: 'success', data: project });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('PROJECT CREATE ERROR:', error?.original?.message || error?.message, 'SQL:', error?.sql);
+    console.error('Request body:', JSON.stringify(req.body, null, 2));
     next(error);
   }
 };

@@ -10,6 +10,8 @@ import Transaction from './Transaction.js';
 import Document from './Document.js';
 import Vendor from './Vendor.js';
 import Notification from './Notification.js';
+import Message from './Message.js';
+import Template from './Template.js';
 
 const models = {
   Property,
@@ -23,7 +25,9 @@ const models = {
   Transaction,
   Document,
   Vendor,
-  Notification
+  Notification,
+  Message,
+  Template
 };
 
 export const initAssociations = () => {
@@ -40,7 +44,5 @@ export const initAssociations = () => {
   Document.associate(models);
   Vendor.associate(models);
   Notification.associate(models);
-  
-  // Unit back-association
-  models.Unit.hasOne(models.Tenant, { foreignKey: 'unitId', as: 'tenant' });
+  Message.associate(models);
 };

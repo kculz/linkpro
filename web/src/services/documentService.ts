@@ -3,12 +3,12 @@ import api from './api';
 export interface Document {
   id: string;
   name: string;
-  type: 'LEASE' | 'RECEIPT' | 'BLUEPRINT' | 'ID' | 'CONTRACT' | 'OTHER';
+  type: 'LEASE' | 'RECEIPT' | 'BLUEPRINT' | 'ID' | 'CONTRACT' | 'QUOTATION' | 'INVOICE' | 'OTHER';
   fileUrl: string;
   fileType: string;
   fileSize: number;
   targetId?: string;
-  targetType: 'PROPERTY' | 'PROJECT' | 'TENANT' | 'UNIT' | 'TRANSACTION' | 'GENERAL';
+  targetType: 'PROPERTY' | 'PROJECT' | 'TENANT' | 'UNIT' | 'TRANSACTION' | 'MAINTENANCE' | 'GENERAL';
   uploadedBy: string;
   createdAt: string;
   uploader?: { name: string };

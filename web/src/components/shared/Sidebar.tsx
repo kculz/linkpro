@@ -19,6 +19,7 @@ import {
   X
 } from 'lucide-react';
 import { useUIStore } from '@/store/ui.store';
+import { useAuthStore } from '@/store/auth.store';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -26,7 +27,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const navItems = [
+const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: Briefcase, label: 'Projects', href: '/projects' },
   { icon: CheckSquare, label: 'Tasks', href: '/tasks' },
@@ -34,6 +35,7 @@ const navItems = [
   { icon: Users, label: 'Tenants', href: '/tenants' },
   { icon: Wallet, label: 'Finance', href: '/finance' },
   { icon: Wrench, label: 'Maintenance', href: '/maintenance' },
+  { icon: Users, label: 'Team', href: '/team', roles: ['OWNER', 'ADMIN'] },
   { icon: MessageSquare, label: 'Messages', href: '/messages' },
   { icon: Settings, label: 'Settings', href: '/settings' },
 ];
@@ -41,6 +43,12 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { isSidebarOpen, toggleSidebar } = useUIStore();
+  const { user } = useAuthStore();
+
+  const filteredNavItems = NAV_ITEMS.filter(item => {
+    if (!item.roles) return true;
+    return user && item.roles.includes(user.role);
+  });
 
   return (
     <aside className={cn(
@@ -63,7 +71,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 px-4 py-8 overflow-y-auto space-y-1">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link 

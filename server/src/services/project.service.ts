@@ -11,8 +11,11 @@ export const getProjectById = async (id: string) => {
   return project;
 };
 
-export const createProject = async (data: Record<string, unknown>) =>
-  Project.create(data as Parameters<typeof Project.create>[0]);
+export const createProject = async (data: Record<string, unknown>) => {
+  // Sanitize empty optional UUID fields to null
+  if (!data.propertyId) data.propertyId = null;
+  return Project.create(data as Parameters<typeof Project.create>[0]);
+};
 
 export const updateProject = async (id: string, data: Record<string, unknown>) => {
   const project = await Project.findByPk(id);

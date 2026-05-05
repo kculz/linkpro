@@ -6,7 +6,7 @@ class User extends Model {
   declare public name: string;
   declare public email: string;
   declare public password: string;
-  declare public role: 'ADMIN' | 'PM' | 'CLIENT' | 'TENANT';
+  declare public role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'ACCOUNTANT' | 'MAINTENANCE' | 'CLIENT' | 'TENANT';
   declare public isVerified: boolean;
   declare public avatar?: string;
   declare public phone?: string;
@@ -41,7 +41,7 @@ User.init(
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM('ADMIN', 'PM', 'CLIENT', 'TENANT'),
+      type: DataTypes.ENUM('OWNER', 'ADMIN', 'MANAGER', 'ACCOUNTANT', 'MAINTENANCE', 'CLIENT', 'TENANT'),
       defaultValue: 'CLIENT',
     },
     isVerified: {

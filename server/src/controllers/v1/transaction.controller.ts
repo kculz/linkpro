@@ -67,3 +67,13 @@ export const getStats = async (req: Request, res: Response, next: NextFunction) 
     next(e);
   }
 };
+
+export const getFinanceIntelligence = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const intel = await TransactionService.getFinanceIntelligence();
+    res.json({ status: 'success', data: intel });
+  } catch (e) {
+    next(e);
+  }
+};
+

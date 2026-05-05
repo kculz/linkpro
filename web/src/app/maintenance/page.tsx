@@ -20,9 +20,11 @@ import {
 import { useMaintenanceStore } from '@/store/maintenance.store';
 import { useAuthStore } from '@/store/auth.store';
 import LogMaintenanceModal from '@/components/maintenance/LogMaintenanceModal';
+import EntityDocumentsModal from '@/components/shared/EntityDocumentsModal';
 import { clsx } from 'clsx';
 import { useSocket } from '@/hooks/useSocket';
 import { formatDistanceToNow } from 'date-fns';
+import { FileText as FileIcon } from 'lucide-react';
 
 const COLUMNS = [
   { id: 'OPEN', label: 'Open Intel', color: 'text-status-error', icon: AlertTriangle },
@@ -36,6 +38,12 @@ export default function MaintenancePage() {
   const { user } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [docModal, setDocModal] = useState<{ isOpen: boolean; targetId: string; title: string }>({
+    isOpen: false,
+    targetId: '',
+    title: ''
+  });
 
   const canManage = user?.role === 'ADMIN' || user?.role === 'PM';
 
@@ -130,8 +138,19 @@ export default function MaintenancePage() {
                         {canManage && (
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button 
+                              className="p-1.5 hover:bg-white/5 rounded-lg text-white/10 hover:text-white transition-all flex items-center gap-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDocModal({ isOpen: true, targetId: request.id, title: request.title });
+                              }}
+                            >
+                              <FileIcon className="w-4 h-4" />
+                              <span className="text-[8px] font-black uppercase italic">Files</span>
+                            </button>
+                            <button 
                               className="p-1.5 hover:bg-primary/10 rounded-lg text-white/10 hover:text-primary transition-all"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 const nextStatusMap: Record<string, string> = {
                                   'OPEN': 'IN_PROGRESS',
                                   'IN_PROGRESS': 'RESOLVED',
@@ -177,6 +196,13 @@ export default function MaintenancePage() {
         )}
 
         <LogMaintenanceModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <EntityDocumentsModal 
+          isOpen={docModal.isOpen} 
+          onClose={() => setDocModal(p => ({ ...p, isOpen: false }))}
+          targetId={docModal.targetId}
+          targetType="MAINTENANCE"
+          title={docModal.title}
+        />
       </div>
     </DashboardLayout>
   );

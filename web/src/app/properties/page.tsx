@@ -6,11 +6,19 @@ import { Building2, Users, TrendingUp, Plus, MapPin, Loader2 } from 'lucide-reac
 import Image from 'next/image';
 import { usePropertyStore } from '@/store/property.store';
 import AddPropertyModal from '@/components/properties/AddPropertyModal';
+import EntityDocumentsModal from '@/components/shared/EntityDocumentsModal';
+import { FileText } from 'lucide-react';
 
 export default function PropertiesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { properties, stats, loading, fetchProperties, fetchStats } = usePropertyStore();
   const [activeTab, setActiveTab] = useState('All Properties');
+  
+  const [docModal, setDocModal] = useState<{ isOpen: boolean; targetId: string; title: string }>({
+    isOpen: false,
+    targetId: '',
+    title: ''
+  });
 
   useEffect(() => {
     fetchProperties();
@@ -45,23 +53,23 @@ export default function PropertiesPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase underline decoration-primary decoration-4 underline-offset-8">Property Assets</h1>
-            <p className="text-white/20 mt-4 font-bold italic uppercase tracking-widest text-[10px]">Strategic Portfolio Management • Global Asset Clusters</p>
+            <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase underline decoration-primary decoration-4 underline-offset-8">Properties</h1>
+            <p className="text-white/20 mt-4 font-bold italic uppercase tracking-widest text-[10px]">Real Estate Portfolio • Asset Management</p>
           </div>
           <button 
             onClick={() => setIsModalOpen(true)}
             className="px-8 py-4 bg-primary text-white rounded-[1.5rem] font-black italic uppercase text-xs tracking-[0.2em] hover:brightness-110 transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] flex items-center gap-3 border border-primary/20"
           >
-            <Plus className="w-5 h-5" /> Deploy Asset
+            <Plus className="w-5 h-5" /> Add Property
           </button>
         </div>
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { label: 'Asset Capacity', value: stats?.totalProperties ?? 0, icon: Building2, color: 'text-primary bg-primary/10' },
-            { label: 'Saturation Rate', value: `${stats?.occupancyRate ?? 0}%`, icon: Users, color: 'text-status-success bg-status-success/10' },
-            { label: 'Monthly Yield', value: `$${(stats?.totalMonthlyIncome ?? 0).toLocaleString()}`, icon: TrendingUp, color: 'text-status-warning bg-status-warning/10' },
+            { label: 'Total Properties', value: stats?.totalProperties ?? 0, icon: Building2, color: 'text-primary bg-primary/10' },
+            { label: 'Occupancy Rate', value: `${stats?.occupancyRate ?? 0}%`, icon: Users, color: 'text-status-success bg-status-success/10' },
+            { label: 'Monthly Income', value: `$${(stats?.totalMonthlyIncome ?? 0).toLocaleString()}`, icon: TrendingUp, color: 'text-status-warning bg-status-warning/10' },
           ].map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="bg-surface/40 rounded-[2.5rem] p-8 border border-white/[0.03] flex items-center gap-6 shadow-2xl backdrop-blur-md relative group overflow-hidden">
                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -93,7 +101,7 @@ export default function PropertiesPage() {
         {loading && properties.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 grayscale opacity-20">
             <Loader2 className="w-12 h-12 animate-spin text-primary mb-6" />
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Synchronizing Portfolio Sensors...</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Loading Properties...</p>
           </div>
         ) : (
           /* Properties Grid */
@@ -136,7 +144,7 @@ export default function PropertiesPage() {
 
                       <div className="mt-8 space-y-6">
                         <div className="flex justify-between items-end">
-                          <span className="text-white/20 text-[10px] font-black uppercase tracking-widest italic">Asset Saturation</span>
+                          <span className="text-white/20 text-[10px] font-black uppercase tracking-widest italic">Occupancy</span>
                           <span className="text-lg font-black text-white italic">{occupancyRate}%</span>
                         </div>
                         <div className="w-full bg-white/5 rounded-full h-1.5 shadow-inner">
@@ -147,13 +155,20 @@ export default function PropertiesPage() {
                         </div>
 
                         <div className="flex justify-between items-center pt-6 border-t border-white/[0.03]">
-                          <div>
-                            <p className="text-[10px] text-white/10 font-black uppercase tracking-widest italic">{property.occupiedUnits} / {property.totalUnits} Units Engaged</p>
-                          </div>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDocModal({ isOpen: true, targetId: property.id, title: property.name });
+                            }}
+                            className="flex items-center gap-2 text-white/20 hover:text-white transition-all group/files"
+                          >
+                            <FileText className="w-4 h-4 text-white/10 group-hover/files:text-primary transition-colors" />
+                            <span className="text-[9px] font-black uppercase tracking-widest italic">Files</span>
+                          </button>
                           <div className="text-right">
                             <p className="text-2xl font-black text-white italic tracking-tighter uppercase">
                               ${Number(property.monthlyIncome).toLocaleString()}
-                              <span className="text-[10px] text-white/20 font-black uppercase tracking-widest ml-1">Yield</span>
+                              <span className="text-[10px] text-white/20 font-black uppercase tracking-widest ml-1">Income</span>
                             </p>
                           </div>
                         </div>
@@ -167,13 +182,13 @@ export default function PropertiesPage() {
                 <div className="w-24 h-24 bg-white/[0.02] rounded-[2.5rem] flex items-center justify-center mb-8 border border-white/[0.05] shadow-inner group-hover:scale-110 transition-transform">
                   <Building2 className="w-12 h-12 text-white/10" />
                 </div>
-                <p className="text-white text-2xl font-black uppercase tracking-tighter italic">Inert Portfolio</p>
-                <p className="text-white/20 mt-4 text-[10px] font-bold uppercase tracking-[0.2em] italic text-center max-w-xs leading-relaxed">System awaiting initial asset deployment. Initiate cluster scanning to begin portfolio management.</p>
+                <p className="text-white text-2xl font-black uppercase tracking-tighter italic">No Properties</p>
+                <p className="text-white/20 mt-4 text-[10px] font-bold uppercase tracking-[0.2em] italic text-center max-w-xs leading-relaxed">You haven't added any properties yet. Start by adding your first one.</p>
                 <button 
                   onClick={() => setIsModalOpen(true)}
                   className="mt-12 px-8 py-4 bg-primary text-white rounded-[1.5rem] font-black italic uppercase text-xs tracking-[0.2em] hover:brightness-110 transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] flex items-center gap-3 border border-primary/20"
                 >
-                  <Plus className="w-5 h-5" /> Deploy First Asset
+                  <Plus className="w-5 h-5" /> Add First Property
                 </button>
               </div>
             )}
@@ -181,6 +196,13 @@ export default function PropertiesPage() {
         )}
 
         <AddPropertyModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <EntityDocumentsModal 
+          isOpen={docModal.isOpen} 
+          onClose={() => setDocModal(p => ({ ...p, isOpen: false }))}
+          targetId={docModal.targetId}
+          targetType="PROPERTY"
+          title={docModal.title}
+        />
       </div>
     </DashboardLayout>
   );

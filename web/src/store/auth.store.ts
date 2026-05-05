@@ -22,10 +22,16 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       refreshToken: null,
-      setAuth: (user, accessToken, refreshToken) =>
-        set({ user, accessToken, refreshToken }),
-      clearAuth: () =>
-        set({ user: null, accessToken: null, refreshToken: null }),
+      setAuth: (user, accessToken, refreshToken) => {
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        set({ user, accessToken, refreshToken });
+      },
+      clearAuth: () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        set({ user: null, accessToken: null, refreshToken: null });
+      },
     }),
     { name: 'linkpro-auth' }
   )

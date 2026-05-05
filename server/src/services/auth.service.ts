@@ -141,3 +141,44 @@ export const resetPassword = async (token: string, newPassword: string) => {
 
   logger.info(`Password reset successful: ${user.email}`);
 };
+
+// ─── Get Current User ─────────────────────────────────────────────────────────
+
+export const getMe = async (userId: string) => {
+  const user = await User.findByPk(userId, {
+    attributes: ['id', 'name', 'email', 'role', 'avatar', 'phone', 'isVerified', 'createdAt'],
+  });
+  if (!user) throw new AppError('User not found', 404);
+  return user;
+};
+
+// ─── Update Profile ───────────────────────────────────────────────────────────
+
+export const updateProfile = async (
+  userId: string,
+  data: { name?: string; phone?: string; avatar?: string }
+) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new AppError('User not found', 404);
+  await user.update(data);
+  logger.info(`Profile updated: ${user.email}`);
+  return { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, phone: user.phone };
+};
+
+// ─── Change Password ──────────────────────────────────────────────────────────
+
+export const changePassword = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new AppError('User not found', 404);
+
+  const isMatch = await comparePasswords(currentPassword, user.password);
+  if (!isMatch) throw new AppError('Current password is incorrect', 400);
+
+  const hashed = await hashPassword(newPassword);
+  await user.update({ password: hashed });
+  logger.info(`Password changed: ${user.email}`);
+};

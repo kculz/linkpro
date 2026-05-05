@@ -8,6 +8,7 @@ import { usePropertyStore } from '@/store/property.store';
 import { useActivityStore } from '@/store/activity.store';
 import { useMaintenanceStore } from '@/store/maintenance.store';
 import { useNotificationStore } from '@/store/notification.store';
+import { useMessageStore } from '@/store/message.store';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5001';
 
@@ -19,6 +20,8 @@ export const useSocket = (roomId?: string) => {
   const { addActivityLocally } = useActivityStore();
   const { addRequestLocally, updateRequestLocally } = useMaintenanceStore();
   const { addNotificationLocally } = useNotificationStore();
+  const { addMessageLocally } = useMessageStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     if (!accessToken) return;
@@ -34,6 +37,10 @@ export const useSocket = (roomId?: string) => {
       console.log('🔌 Connected to real-time sync server');
       if (roomId) {
         socket.emit('join-room', roomId);
+      }
+      // Join personal room for DMs
+      if (user?.id) {
+        socket.emit('auth:identify', user.id);
       }
     });
 
@@ -73,6 +80,10 @@ export const useSocket = (roomId?: string) => {
 
     socket.on('notification:new', (notification) => {
       addNotificationLocally(notification);
+    });
+
+    socket.on('message:new', (message) => {
+      addMessageLocally(message);
     });
 
     return () => {

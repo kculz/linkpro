@@ -18,10 +18,14 @@ export const errorHandler = (
   next: NextFunction
 ): void => {
   const statusCode = err instanceof AppError ? err.statusCode : 500;
+  const sqlError = (err as any).original || (err as any).parent;
+  const logMessage = sqlError
+    ? `${req.method} ${req.url} → ${statusCode}: ${sqlError.message || err.message} [SQL: ${(err as any).sql || 'n/a'}]`
+    : `${req.method} ${req.url} → ${statusCode}: ${err.message}`;
   if (statusCode >= 500) {
-    logger.error(`${req.method} ${req.url} → ${statusCode}: ${err.message}`, { stack: err.stack });
+    logger.error(logMessage, { stack: err.stack });
   } else {
-    logger.warn(`${req.method} ${req.url} → ${statusCode}: ${err.message}`);
+    logger.warn(logMessage);
   }
   res.status(statusCode).json({
     success: false,

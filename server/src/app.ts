@@ -22,6 +22,9 @@ import documentRoutes from './routes/v1/document.routes.js';
 import vendorRoutes from './routes/v1/vendor.routes.js';
 import analyticsRoutes from './routes/v1/analytics.routes.js';
 import notificationRoutes from './routes/v1/notification.routes.js';
+import messageRoutes from './routes/v1/message.routes.js';
+import templateRoutes from './routes/v1/template.routes.js';
+import teamRoutes from './routes/v1/team.routes.js';
 
 dotenv.config();
 
@@ -56,6 +59,9 @@ app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/vendors', vendorRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/messages', messageRoutes);
+app.use('/api/v1/templates', templateRoutes);
+app.use('/api/v1/team', teamRoutes);
 
 // Health Check
 app.get('/health', (req: Request, res: Response) => {

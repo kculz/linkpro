@@ -8,7 +8,9 @@ import Link from 'next/link';
 import { useProjectStore } from '@/store/project.store';
 import { useAuthStore } from '@/store/auth.store';
 import AddProjectModal from '@/components/projects/AddProjectModal';
+import EntityDocumentsModal from '@/components/shared/EntityDocumentsModal';
 import { clsx } from 'clsx';
+import { FileText as FileIcon } from 'lucide-react';
 
 const getStatusDetails = (status: string) => {
   switch (status) {
@@ -29,6 +31,12 @@ export default function ProjectsPage() {
   const { projects, loading, fetchProjects } = useProjectStore();
   const { user } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const [docModal, setDocModal] = useState<{ isOpen: boolean; targetId: string; title: string }>({
+    isOpen: false,
+    targetId: '',
+    title: ''
+  });
 
   const canManage = user?.role === 'ADMIN' || user?.role === 'PM';
 
@@ -136,6 +144,25 @@ export default function ProjectsPage() {
                       />
                     </div>
                   </div>
+
+                  <div className="mt-8 flex items-center justify-between border-t border-white/[0.03] pt-6">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setDocModal({ isOpen: true, targetId: project.id, title: project.name });
+                      }}
+                      className="flex items-center gap-2 text-white/20 hover:text-white transition-all group/btn"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/btn:bg-primary/20 transition-all border border-white/5">
+                        <FileIcon className="w-4 h-4 group-hover/btn:text-primary" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest italic">Project Files</span>
+                    </button>
+                    
+                    <div className="flex -space-x-3 overflow-hidden">
+                       <div className="inline-block h-8 w-8 rounded-full ring-2 ring-[#020617] bg-white/5 flex items-center justify-center text-[10px] font-black italic uppercase">PM</div>
+                    </div>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -143,6 +170,13 @@ export default function ProjectsPage() {
         )}
 
         <AddProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <EntityDocumentsModal 
+          isOpen={docModal.isOpen} 
+          onClose={() => setDocModal(p => ({ ...p, isOpen: false }))}
+          targetId={docModal.targetId}
+          targetType="PROJECT"
+          title={docModal.title}
+        />
       </div>
     </DashboardLayout>
   );

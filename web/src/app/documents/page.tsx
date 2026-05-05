@@ -21,27 +21,38 @@ import {
   HardDrive
 } from 'lucide-react';
 import { useDocumentStore } from '@/store/document.store';
+import { useTemplateStore } from '@/store/template.store';
 import UploadDocumentModal from '@/components/documents/UploadDocumentModal';
+import GenerateLeaseModal from '@/components/documents/GenerateLeaseModal';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
+import { FileSignature as TemplateIcon, Sparkles, Wand2 } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'LEASE', label: 'Lease Agreements', icon: FileSignature, color: 'text-primary' },
-  { id: 'RECEIPT', label: 'Financial Receipts', icon: FileCheck, color: 'text-emerald-500' },
-  { id: 'BLUEPRINT', label: 'Blueprints & Technical', icon: FileCode, color: 'text-amber-500' },
-  { id: 'CONTRACT', label: 'Legal Contracts', icon: ShieldCheck, color: 'text-indigo-500' },
-  { id: 'ID', label: 'Identity Documents', icon: FileImage, color: 'text-slate-400' },
+  { id: 'RECEIPT', label: 'Receipts', icon: FileCheck, color: 'text-emerald-500' },
+  { id: 'QUOTATION', label: 'Quotations', icon: FileText, color: 'text-amber-500' },
+  { id: 'INVOICE', label: 'Invoices', icon: FileCode, color: 'text-indigo-500' },
+  { id: 'CONTRACT', label: 'Contracts', icon: ShieldCheck, color: 'text-blue-500' },
+  { id: 'BLUEPRINT', label: 'Blueprints', icon: FileCode, color: 'text-orange-500' },
+  { id: 'ID', label: 'Personal ID', icon: FileImage, color: 'text-slate-400' },
 ];
 
 export default function DocumentsPage() {
-  const { documents, loading, fetchDocuments, deleteDocument } = useDocumentStore();
+  const { documents, loading: docsLoading, fetchDocuments, deleteDocument } = useDocumentStore();
+  const { templates, loading: templatesLoading, fetchTemplates, deleteTemplate, seedTemplates } = useTemplateStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'FILES' | 'TEMPLATES'>('FILES');
 
   useEffect(() => {
     fetchDocuments();
-  }, [fetchDocuments]);
+    fetchTemplates();
+  }, [fetchDocuments, fetchTemplates]);
+
+  const loading = docsLoading || templatesLoading;
 
   const filteredDocs = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -58,14 +69,44 @@ export default function DocumentsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase underline decoration-primary decoration-4 underline-offset-8">Asset Vault</h1>
-            <p className="text-white/20 mt-4 font-bold italic uppercase tracking-widest text-[10px]">Secure Documentation • Historical Integrity Storage</p>
+            <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase underline decoration-primary decoration-4 underline-offset-8">Documents & Files</h1>
+            <p className="text-white/20 mt-4 font-bold italic uppercase tracking-widest text-[10px]">Secure Storage • Quotations • Invoices • Contracts</p>
           </div>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsGenerateModalOpen(true)}
+              className="px-8 py-4 bg-white/5 text-white rounded-[1.5rem] font-black italic uppercase text-xs tracking-[0.2em] hover:bg-white/10 transition-all flex items-center gap-3 border border-white/10"
+            >
+              <Wand2 className="w-5 h-5 text-primary" /> Create Agreement
+            </button>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="px-8 py-4 bg-primary text-white rounded-[1.5rem] font-black italic uppercase text-xs tracking-[0.2em] hover:brightness-110 transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] flex items-center gap-3 border border-primary/20"
+            >
+              <Upload className="w-5 h-5" /> Upload Document
+            </button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-4 border-b border-white/[0.03] pb-1">
           <button 
-            onClick={() => setIsModalOpen(true)}
-            className="px-8 py-4 bg-primary text-white rounded-[1.5rem] font-black italic uppercase text-xs tracking-[0.2em] hover:brightness-110 transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] flex items-center gap-3 border border-primary/20"
+            onClick={() => setActiveTab('FILES')}
+            className={clsx(
+              "px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] italic border-b-2 transition-all",
+              activeTab === 'FILES' ? "border-primary text-white" : "border-transparent text-white/20 hover:text-white/40"
+            )}
           >
-            <Upload className="w-5 h-5" /> Deposit Asset
+            All Documents ({documents.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('TEMPLATES')}
+            className={clsx(
+              "px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] italic border-b-2 transition-all",
+              activeTab === 'TEMPLATES' ? "border-primary text-white" : "border-transparent text-white/20 hover:text-white/40"
+            )}
+          >
+            Templates ({templates.length})
           </button>
         </div>
 
@@ -77,7 +118,7 @@ export default function DocumentsPage() {
               <FolderOpen className="w-7 h-7" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest italic mb-1">Total Artifacts</p>
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest italic mb-1">Total Documents</p>
               <p className="text-3xl font-black text-white italic tracking-tighter uppercase">{documents.length}</p>
             </div>
           </div>
@@ -87,7 +128,7 @@ export default function DocumentsPage() {
               <HardDrive className="w-7 h-7" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest italic mb-1">Vault Utilization</p>
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest italic mb-1">Storage Used</p>
               <p className="text-3xl font-black text-white italic tracking-tighter uppercase">{totalSizeFormatted}</p>
             </div>
           </div>
@@ -113,7 +154,7 @@ export default function DocumentsPage() {
                 !activeCategory ? "bg-white/5 border-white/10 text-white shadow-lg" : "text-white/20 border-transparent hover:text-white/40"
               )}
             >
-              All Assets
+              All Documents
             </button>
             {CATEGORIES.map(cat => (
               <button 
@@ -134,7 +175,7 @@ export default function DocumentsPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/10 group-focus-within:text-primary transition-colors" />
             <input 
               type="text" 
-              placeholder="Query vault metadata..."
+              placeholder="Search documents..."
               className="w-full bg-surface/40 border border-white/[0.05] rounded-2xl py-4 pl-12 pr-6 text-xs font-bold text-white italic placeholder:text-white/10 outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -142,16 +183,30 @@ export default function DocumentsPage() {
           </div>
         </div>
 
+        {activeTab === 'TEMPLATES' && templates.length === 0 && (
+          <div className="bg-surface/30 rounded-[3rem] border border-white/[0.03] p-32 text-center">
+            <TemplateIcon className="w-16 h-16 mx-auto mb-6 text-white/10" />
+            <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">No Templates Configured</h3>
+            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest italic mt-4 mb-10">Generate agreements instantly by seeding default legal templates</p>
+            <button 
+              onClick={() => seedTemplates()}
+              className="px-8 py-4 bg-emerald-500 text-white rounded-[1.5rem] font-black italic uppercase text-xs tracking-[0.2em] hover:brightness-110 transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center gap-3 border border-emerald-500/20 mx-auto"
+            >
+              <Sparkles className="w-5 h-5" /> Seed Default Templates
+            </button>
+          </div>
+        )}
+
         {/* Document Grid */}
         {loading ? (
           <div className="py-40 flex flex-col items-center justify-center opacity-20">
             <Loader2 className="w-12 h-12 animate-spin mb-6" />
-            <p className="text-[10px] font-black uppercase tracking-widest italic">Decrypting Secure Vault...</p>
+            <p className="text-[10px] font-black uppercase tracking-widest italic">Loading Documents...</p>
           </div>
         ) : filteredDocs.length === 0 ? (
           <div className="bg-surface/30 rounded-[3rem] border border-white/[0.03] p-32 text-center opacity-40">
             <FileText className="w-16 h-16 mx-auto mb-6 text-white/10" />
-            <p className="text-[10px] font-black uppercase tracking-widest italic">No operational artifacts found matching query</p>
+            <p className="text-[10px] font-black uppercase tracking-widest italic">No documents found matching your search</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-20">
@@ -193,7 +248,7 @@ export default function DocumentsPage() {
                         <span className="text-white/60">{(doc.fileSize / (1024 * 1024)).toFixed(2)} MB</span>
                       </div>
                       <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest italic text-white/20">
-                        <span>Deposited</span>
+                        <span>Uploaded</span>
                         <span className="text-white/60">{format(new Date(doc.createdAt), 'MMM dd, yyyy')}</span>
                       </div>
                     </div>
@@ -214,7 +269,39 @@ export default function DocumentsPage() {
           </div>
         )}
 
+        {/* Templates Grid */}
+        {activeTab === 'TEMPLATES' && templates.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
+            {templates.map((t) => (
+              <div key={t.id} className="group bg-surface/40 rounded-[2.5rem] border border-white/[0.03] hover:border-primary/30 transition-all duration-500 overflow-hidden shadow-2xl relative p-8">
+                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-8 border border-primary/20">
+                    <TemplateIcon className="w-7 h-7" />
+                 </div>
+                 <h4 className="text-lg font-black text-white italic uppercase tracking-tighter group-hover:text-primary transition-colors mb-2">{t.name}</h4>
+                 <p className="text-[9px] text-white/20 font-bold italic uppercase tracking-widest leading-relaxed mb-8">{t.description}</p>
+                 
+                 <div className="flex items-center justify-between pt-6 border-t border-white/[0.03]">
+                    <button 
+                      onClick={() => setIsGenerateModalOpen(true)}
+                      className="flex items-center gap-2 text-primary hover:brightness-125 transition-all"
+                    >
+                       <Wand2 className="w-4 h-4" />
+                       <span className="text-[10px] font-black uppercase italic tracking-widest">Use Template</span>
+                    </button>
+                    <button 
+                      onClick={() => deleteTemplate(t.id)}
+                      className="p-2 hover:bg-status-error/10 rounded-xl text-white/5 hover:text-status-error transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <UploadDocumentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <GenerateLeaseModal isOpen={isGenerateModalOpen} onClose={() => setIsGenerateModalOpen(false)} />
       </div>
     </DashboardLayout>
   );

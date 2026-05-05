@@ -4,12 +4,12 @@ import sequelize from '../config/database.js';
 class Document extends Model {
   public id!: string;
   public name!: string;
-  public type!: 'LEASE' | 'RECEIPT' | 'BLUEPRINT' | 'ID' | 'CONTRACT' | 'OTHER';
+  public type!: 'LEASE' | 'RECEIPT' | 'BLUEPRINT' | 'ID' | 'CONTRACT' | 'QUOTATION' | 'INVOICE' | 'OTHER';
   public fileUrl!: string;
   public fileType!: string;
   public fileSize!: number;
   public targetId!: string;
-  public targetType!: 'PROPERTY' | 'PROJECT' | 'TENANT' | 'UNIT' | 'TRANSACTION' | 'GENERAL';
+  public targetType!: 'PROPERTY' | 'PROJECT' | 'TENANT' | 'UNIT' | 'TRANSACTION' | 'MAINTENANCE' | 'GENERAL';
   public uploadedBy!: string;
   public metadata?: any;
 
@@ -23,7 +23,7 @@ Document.init(
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     name: { type: DataTypes.STRING, allowNull: false },
     type: { 
-      type: DataTypes.ENUM('LEASE', 'RECEIPT', 'BLUEPRINT', 'ID', 'CONTRACT', 'OTHER'), 
+      type: DataTypes.ENUM('LEASE', 'RECEIPT', 'BLUEPRINT', 'ID', 'CONTRACT', 'QUOTATION', 'INVOICE', 'OTHER'), 
       defaultValue: 'OTHER' 
     },
     fileUrl: { type: DataTypes.STRING, allowNull: false },
@@ -31,7 +31,7 @@ Document.init(
     fileSize: { type: DataTypes.INTEGER, allowNull: false },
     targetId: { type: DataTypes.UUID, allowNull: true },
     targetType: { 
-      type: DataTypes.ENUM('PROPERTY', 'PROJECT', 'TENANT', 'UNIT', 'TRANSACTION', 'GENERAL'), 
+      type: DataTypes.ENUM('PROPERTY', 'PROJECT', 'TENANT', 'UNIT', 'TRANSACTION', 'MAINTENANCE', 'GENERAL'), 
       defaultValue: 'GENERAL' 
     },
     uploadedBy: { type: DataTypes.UUID, allowNull: false },

@@ -8,6 +8,7 @@ router.use(authenticate);
 
 router.get('/', TransactionController.getAll);
 router.get('/stats', TransactionController.getStats);
+router.get('/finance-intelligence', TransactionController.getFinanceIntelligence);
 router.post('/', authorize('ADMIN', 'PM'), TransactionController.create);
 router.put('/:id', authorize('ADMIN', 'PM'), TransactionController.update);
 

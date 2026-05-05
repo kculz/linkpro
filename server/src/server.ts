@@ -29,6 +29,12 @@ io.on('connection', (socket) => {
     logger.debug(`Socket ${socket.id} joined room: ${roomId}`);
   });
 
+  // Auto-join user's personal room for DMs
+  socket.on('auth:identify', (userId: string) => {
+    socket.join(`user:${userId}`);
+    logger.debug(`Socket ${socket.id} joined user room: user:${userId}`);
+  });
+
   socket.on('disconnect', () => {
     logger.debug(`❌ Client disconnected: ${socket.id}`);
   });

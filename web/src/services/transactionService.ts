@@ -36,3 +36,21 @@ export const updateTransaction = async (id: string, txData: Partial<Transaction>
   const { data } = await api.put(`/transactions/${id}`, txData);
   return data.data as Transaction;
 };
+
+export interface FinanceIntelligence {
+  totalRevenue: number;
+  pendingRevenue: number;
+  overdueRevenue: number;
+  monthlyTrend: { month: string; paid: number; total: number }[];
+  revenueByType: { type: string; amount: number }[];
+  revenueByProperty: { propertyId: string; revenue: number; name: string; totalUnits: number; occupiedUnits: number }[];
+  cashFlow: { income: number; expenses: number; netCashFlow: number };
+  collectionRate: { month: string; rate: number }[];
+  recentTransactions: Transaction[];
+}
+
+export const getFinanceIntelligence = async () => {
+  const { data } = await api.get('/transactions/finance-intelligence');
+  return data.data as FinanceIntelligence;
+};
+

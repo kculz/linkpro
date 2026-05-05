@@ -66,3 +66,32 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     res.status(200).json({ success: true, message: 'Password updated successfully. You can now log in.' });
   } catch (err) { next(err); }
 };
+
+// ─── Get Current User ─────────────────────────────────────────────────────────
+export const getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const user = await AuthService.getMe((req as any).user.id);
+    res.status(200).json({ success: true, data: user });
+  } catch (err) { next(err); }
+};
+
+// ─── Update Profile ───────────────────────────────────────────────────────────
+export const updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const updated = await AuthService.updateProfile((req as any).user.id, req.body);
+    res.status(200).json({ success: true, data: updated });
+  } catch (err) { next(err); }
+};
+
+// ─── Change Password ──────────────────────────────────────────────────────────
+export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ success: false, message: 'Current and new passwords are required' });
+      return;
+    }
+    await AuthService.changePassword((req as any).user.id, currentPassword, newPassword);
+    res.status(200).json({ success: true, message: 'Password changed successfully.' });
+  } catch (err) { next(err); }
+};

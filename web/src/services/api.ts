@@ -34,6 +34,10 @@ api.interceptors.response.use(
           localStorage.clear();
           window.location.href = '/login';
         }
+      } else {
+        // No token at all — redirect to login
+        localStorage.clear();
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);
