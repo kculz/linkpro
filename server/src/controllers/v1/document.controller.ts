@@ -41,7 +41,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
 
 export const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await DocumentService.deleteDocument(req.params.id);
+    await DocumentService.deleteDocument(req.params.id as string);
     res.json({ status: 'success', message: 'Document removed from vault' });
   } catch (e) {
     next(e);

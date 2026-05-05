@@ -33,7 +33,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
 
 export const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const transaction = await TransactionService.updateTransaction(req.params.id, req.body);
+    const transaction = await TransactionService.updateTransaction(req.params.id as string, req.body);
     
     if (req.body.status === 'PAID') {
       await activityService.logActivity({

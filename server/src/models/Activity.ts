@@ -7,7 +7,7 @@ class Activity extends Model {
   public type!: 'CREATE' | 'UPDATE' | 'DELETE' | 'STATUS_CHANGE' | 'ASSIGNMENT';
   public description!: string;
   public targetId!: string;
-  public targetType!: 'PROPERTY' | 'PROJECT' | 'TASK' | 'UNIT';
+  public targetType!: 'PROPERTY' | 'PROJECT' | 'TASK' | 'UNIT' | 'TENANT' | 'TRANSACTION' | 'MAINTENANCE' | 'GENERAL';
   public metadata?: any;
   public readonly createdAt!: Date;
 
@@ -27,7 +27,7 @@ Activity.init(
     description: { type: DataTypes.STRING, allowNull: false },
     targetId: { type: DataTypes.UUID, allowNull: false },
     targetType: { 
-      type: DataTypes.ENUM('PROPERTY', 'PROJECT', 'TASK', 'UNIT'), 
+      type: DataTypes.ENUM('PROPERTY', 'PROJECT', 'TASK', 'UNIT', 'TENANT', 'TRANSACTION', 'MAINTENANCE', 'GENERAL'), 
       allowNull: false 
     },
     metadata: { type: DataTypes.JSONB, allowNull: true },

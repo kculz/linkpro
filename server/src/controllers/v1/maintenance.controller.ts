@@ -15,7 +15,7 @@ export const getAll = async (req: Request, res: Response, next: NextFunction) =>
 
 export const getOne = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const request = await MaintenanceService.getRequestById(req.params.id);
+    const request = await MaintenanceService.getRequestById(req.params.id as string);
     res.json({ status: 'success', data: request });
   } catch (e) {
     next(e);
@@ -53,7 +53,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
 
 export const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const request = await MaintenanceService.updateRequest(req.params.id, req.body);
+    const request = await MaintenanceService.updateRequest(req.params.id as string, req.body);
     
     // Broadcast real-time update
     io.to(request.propertyId).emit('maintenance:updated', request);
@@ -75,7 +75,7 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
 
 export const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await MaintenanceService.deleteRequest(req.params.id);
+    await MaintenanceService.deleteRequest(req.params.id as string);
     res.json({ status: 'success', message: 'Request removed' });
   } catch (e) {
     next(e);
